@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Techno Clock</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #00FF00; /* Зеленый цвет электронных часов */
+            /* Используем системный угловатый моноширинный шрифт */
+            font-family: 'Courier New', Courier, monospace; 
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Область часов во весь экран */
+        .clock-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .clock-text {
+            font-weight: bold;
+            /* Эффект мощного электронного свечения */
+            text-shadow: 0 0 20px #00FF00, 0 0 5px #00FF00; 
+            text-align: center;
+            white-space: nowrap;
+            letter-spacing: 2px;
+            /* Искусственно вытягиваем буквы вверх и сжимаем по бокам, делая их прямоугольными */
+            transform: scaleX(0.85); 
+            display: inline-block;
+        }
+
+        /* Панель управления */
+        .controls {
+            background-color: #121212;
+            padding: 15px 30px;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #222;
+        }
+
+        /* Класс для полного скрытия настроек */
+        .controls.hidden {
+            display: none;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Удлиненный ползунок */
+        input[type="range"] {
+            accent-color: #00FF00;
+            cursor: pointer;
+            width: 280px;
+        }
+
+        /* Компактная круглая кнопка */
+        .btn-fullscreen {
+            background-color: #222;
+            color: #00FF00;
+            border: 2px solid #00FF00;
+            border-radius: 50%;
+            cursor: pointer;
+            font-family: Arial, sans-serif; /* Простой стандартный шрифт для кнопки */
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 90px;
+            height: 90px;
+            padding: 10px;
+            box-sizing: border-box;
+            line-height: 1.2;
+        }
+
+        .btn-fullscreen:active {
+            background-color: #00FF00;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Дисплей часов с квадратными цифровыми символами -->
+    <div class="clock-container" id="clockContainer">
+        <div class="clock-text" id="clockText">00:00:00</div>
+    </div>
+
+    <!-- Панель настройки -->
+    <div class="controls" id="controlsPanel">
+        <div class="control-group">
+            <input type="range" id="sizeSlider" min="40" max="350" value="150">
+        </div>
+        <button class="btn-fullscreen" id="btnFullscreen">START CLOCK</button>
+    </div>
+
+    <script>
+        const clockText = document.getElementById('clockText');
+        const clockContainer = document.getElementById('clockContainer');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const controlsPanel = document.getElementById('controlsPanel');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+
+        let showDateMode = false;
+
+        function updateScreen() {
+            const now = new Date();
+
+            if (!showDateMode) {
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                clockText.textContent = `${hours}:${minutes}:${seconds}`;
+            } else {
+                const day = String(now.getDate()).padStart(2, '0');
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const year = String(now.getFullYear()).slice(-2);
+                clockText.textContent = `${month}.${day}.${year}`;
+            }
+        }
+
+        setInterval(updateScreen, 1000);
+        updateScreen();
+
+        function updateFontSize() {
+            clockText.style.fontSize = sizeSlider.value + 'px';
+        }
+        sizeSlider.addEventListener('input', updateFontSize);
+        updateFontSize();
+
+        function enableDate() { if (document.fullscreenElement) { showDateMode = true; updateScreen(); } }
+        function disableDate() { showDateMode = false; updateScreen(); }
+
+        clockContainer.addEventListener('mousedown', enableDate);
+        clockContainer.addEventListener('touchstart', (e) => { e.preventDefault(); enableDate(); });
+        window.addEventListener('mouseup', disableDate);
+        window.addEventListener('touchend', disableDate);
+
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.documentElement.requestFullscreen) {
+                alert("Fullscreen mode is not supported by your browser");
+                return;
+            }
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Error: ${err.message}`);
+                });
+                controlsPanel.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                controlsPanel.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+
